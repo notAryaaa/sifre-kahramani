@@ -5,61 +5,78 @@ export interface GamePair {
   reason: string;
 }
 
+// Every pair is a trap: the weaker password looks strong (symbols, length, "random"
+// characters) or both look alike and the difference is subtle. The game shuffles
+// question order and which side each password appears on.
 export const GAME_PAIRS: GamePair[] = [
   {
-    id: "isim-vs-cumle",
-    passwords: ["Ali123456", "Mavi!Bulut-Kiraz-47"],
+    id: "leet-tuzagi",
+    passwords: ["P@ssw0rd2024!", "dolap-limon-bisiklet"],
     saferIndex: 1,
     reason:
-      "\"Mavi!Bulut-Kiraz-47\" çok daha güvenli: uzun, birbiriyle ilgisiz kelimelerden oluşuyor ve kişisel bilgi içermiyor. \"Ali123456\" ise bir isim ile ardışık sayılardan oluşuyor; bu yüzden saniyeler içinde tahmin edilebilir.",
+      "\"P@ssw0rd2024!\" karmaşık görünüyor ama aslında \"password\" kelimesi; harfleri @ ve 0 ile değiştirmek saldırganların ilk denediği numaralardandır. \"dolap-limon-bisiklet\" ise birbiriyle ilgisiz üç kelimeden oluşan uzun bir parola cümlesi.",
   },
   {
-    id: "klavye-deseni",
-    passwords: ["qwerty123", "T9!kşL2@zpM"],
+    id: "takim-ve-yil",
+    passwords: ["Galatasaray1905!", "kM7#pX2q!v"],
     saferIndex: 1,
     reason:
-      "\"T9!kşL2@zpM\" rastgele karakterlerden oluşuyor ve tahmin edilecek bir kalıp taşımıyor. \"qwerty123\" ise klavyede yan yana duran tuşlardan oluştuğu için saldırı listelerinde ilk sıralarda yer alır.",
+      "\"Galatasaray1905!\" 16 karakter ama bir takım adı ve kuruluş yılından oluşuyor; bu tür şifreler saldırı listelerinde hazır bekler. \"kM7#pX2q!v\" daha kısa olsa da tamamen rastgele, tahmin edilecek bir kalıbı yok.",
   },
   {
-    id: "sembol-yaniltmaci",
-    passwords: ["Qwerty!2023", "Turuncu-Kaplumbağa-Uçtu91"],
+    id: "klavye-sutunu",
+    passwords: ["1qaz2wsx3edc", "pazar-sabahi-mor-semsiye"],
     saferIndex: 1,
     reason:
-      "\"Qwerty!2023\" büyük harf, sembol ve rakam içerse de içindeki klavye deseni ve yıl bilgisi onu zayıflatır — sembol kullanmak tek başına bir şifreyi güvenli yapmaz! \"Turuncu-Kaplumbağa-Uçtu91\" uzun ve rastgele kelimelerden oluştuğu için çok daha güçlüdür.",
+      "\"1qaz2wsx3edc\" rastgele görünüyor ama klavyede yukarıdan aşağı inen sütunlar: 1-q-a-z, 2-w-s-x, 3-e-d-c. Klavye desenleri saldırganların bildiği bir hiledir. \"pazar-sabahi-mor-semsiye\" uzun ve öngörülemez.",
   },
   {
-    id: "yaygin-kelime",
-    passwords: ["istanbul", "7xK!dQ2#mN9"],
+    id: "evcil-hayvan",
+    passwords: ["Kedim.Pamuk.2019", "Tencere.Ufuk.Kaktus.38"],
     saferIndex: 1,
     reason:
-      "\"istanbul\" yaygın bir kelime olduğu için şifre kırma listelerinin başında bulunur. \"7xK!dQ2#mN9\" rastgele karakterlerden oluştuğu için tahmin edilmesi çok daha zordur.",
+      "\"Kedim.Pamuk.2019\" kedinin adı ve sahiplenme yılı; sosyal medyada paylaştığın bir fotoğraf bu şifreyi ele verebilir. \"Tencere.Ufuk.Kaktus.38\" seninle hiçbir bağlantısı olmayan kelimelerden oluşuyor.",
   },
   {
-    id: "guncel-yil",
-    passwords: ["Sevgilim2024", "Deniz-Yıldız-92!Kahve"],
+    id: "sembol-mu-uzunluk-mu",
+    passwords: ["Tr!stanbul34", "gecebulutkalemsu"],
     saferIndex: 1,
     reason:
-      "\"Sevgilim2024\" kolay tahmin edilen bir kelime ile güncel bir yılın birleşimidir. \"Deniz-Yıldız-92!Kahve\" ise birbiriyle ilgisiz kelimelerden oluşan uzun bir parola cümlesi; hem hatırlaması kolaydır hem de kırılması çok uzun sürer.",
+      "Sadece küçük harf olması \"gecebulutkalemsu\"yu zayıf göstermesin: 16 karakter ve dört ilgisiz kelime. \"Tr!stanbul34\" ise şehir adı ve plaka kodu; ! ile i'yi değiştirmek saldırganı durdurmaz. Uzunluk, sembolden daha önemlidir!",
   },
   {
-    id: "tekrar-eden-karakter",
-    passwords: ["111111", "Kelebek7@Masa!19"],
+    id: "sarki-sozu",
+    passwords: ["H@yat1mBen1m", "lamba-ceviz-tren-karpuz"],
     saferIndex: 1,
     reason:
-      "\"111111\" tamamen aynı karakterin tekrarından oluşuyor; bu tür şifreler saniyeler içinde denenir. \"Kelebek7@Masa!19\" uzunluğu ve karakter çeşitliliğiyle çok daha dayanıklıdır.",
+      "\"H@yat1mBen1m\" bilinen bir söz kalıbı (\"Hayatım benim\") ve harf-rakam değişimleri tahmin edilebilir. Saldırganlar şarkı sözü ve deyim listeleri de kullanır. \"lamba-ceviz-tren-karpuz\" rastgele kelimelerden oluşuyor.",
   },
   {
-    id: "klasik-kalip",
-    passwords: ["Password1!", "uzakYıldızKahve42"],
+    id: "site-adi",
+    passwords: ["Instagram_Ece2024", "Kuzgun!Simit*Bulut42"],
     saferIndex: 1,
     reason:
-      "\"Password1!\" dünyada en çok kullanılan şifre kalıplarından biridir ve saldırı listelerinde üst sıralardadır. \"uzakYıldızKahve42\" yaygın olmayan bir kelime birleşimi ve uzunluğu sayesinde daha güvenlidir.",
+      "\"Instagram_Ece2024\" sitenin adı, senin adın ve yıl: biri bu kalıbı çözerse diğer hesaplarındaki şifreleri de tahmin eder (Twitter_Ece2024...). \"Kuzgun!Simit*Bulut42\" hiçbir siteye ya da kişiye bağlı değil.",
   },
   {
-    id: "isim-dogum-yili",
-    passwords: ["Mehmet1988", "tavsan-gunes-78-deniz"],
+    id: "tekrar-eden-kelime",
+    passwords: ["deniz-deniz-deniz-deniz", "deniz-kirpi-mantar-ayna"],
     saferIndex: 1,
     reason:
-      "\"Mehmet1988\" bir isim ve doğum yılından oluşuyor; bu bilgiler sosyal medyadan kolayca öğrenilebilir. \"tavsan-gunes-78-deniz\" kişisel bilgi içermeyen, rastgele seçilmiş kelimelerden oluşan bir parola cümlesidir.",
+      "İkisi de aynı uzunlukta parola cümlesi gibi duruyor, ama \"deniz-deniz-deniz-deniz\" aslında tek bir kelime. Tekrar, uzunluğun sağladığı gücü sıfırlar. \"deniz-kirpi-mantar-ayna\" dört farklı kelimeden oluşuyor.",
+  },
+  {
+    id: "unlu-isim",
+    passwords: ["Mustafa.Kemal.1881", "Sarı.Fil.Uçar.1881"],
+    saferIndex: 1,
+    reason:
+      "Yapıları neredeyse aynı! Ama \"Mustafa.Kemal.1881\" herkesin bildiği bir isim ve tarih; saldırgan listelerinde ünlü isimler ve tarihler ilk sıralarda yer alır. \"Sarı.Fil.Uçar.1881\" anlamsız, rastgele bir cümle.",
+  },
+  {
+    id: "tekrar-eden-blok",
+    passwords: ["aZ9!aZ9!aZ9!", "aZ9!kP4@rT7#"],
+    saferIndex: 1,
+    reason:
+      "İki şifre de aynı karakter türlerini kullanıyor ve 12 karakter. Fark şu: \"aZ9!aZ9!aZ9!\" aynı dört karakteri üç kez tekrar ediyor, yani gerçekte sadece 4 karakter kadar güçlü. \"aZ9!kP4@rT7#\" baştan sona rastgele.",
   },
 ];

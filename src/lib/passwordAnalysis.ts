@@ -1,4 +1,4 @@
-import { COMMON_PASSWORDS, COMMON_FIRST_NAMES } from "@/data/commonPasswords";
+import { COMMON_PASSWORDS, COMMON_FIRST_NAMES, COMMON_WORDS } from "@/data/commonPasswords";
 
 export type StrengthTier = "cok-zayif" | "zayif" | "orta" | "iyi" | "cok-guclu";
 
@@ -33,6 +33,8 @@ const KEYBOARD_RUNS = [
   "qwertyuiop",
   "asdfghjkl",
   "zxcvbnm",
+  // keyboard columns: 1qaz 2wsx 3edc ...
+  "1qaz2wsx3edc4rfv5tgb6yhn7ujm8ik9ol0p",
 ];
 
 function hasSequentialRun(pw: string): boolean {
@@ -68,14 +70,37 @@ function hasRepeatingBlock(pw: string): boolean {
   return false;
 }
 
-function isCommonPassword(pw: string): boolean {
-  const lower = pw.toLowerCase();
-  return COMMON_PASSWORDS.some((c) => lower === c || lower.includes(c));
+const LEET: Record<string, string> = { "@": "a", "4": "a", "3": "e", "1": "i", "!": "i", "0": "o", $: "s", "5": "s", "7": "t" };
+
+function lower(pw: string): string {
+  // "İ".toLowerCase() leaves a combining dot behind; drop it so "İstanbul" matches "istanbul".
+  return pw.toLowerCase().replace(/\u0307/g, "");
 }
 
-function findCommonName(pw: string): string | null {
-  const lower = pw.toLowerCase();
-  return COMMON_FIRST_NAMES.find((name) => lower.includes(name)) ?? null;
+// P@ssw0rd -> password: attackers undo these swaps automatically.
+function undoLeet(pw: string): string {
+  return lower(pw).replace(/[@431!0$57]/g, (ch) => LEET[ch]);
+}
+
+function isCommonPassword(pw: string): { common: boolean; viaLeet: boolean } {
+  const raw = lower(pw);
+  if (COMMON_PASSWORDS.some((c) => raw.includes(c))) return { common: true, viaLeet: false };
+  const unleeted = undoLeet(pw);
+  return { common: COMMON_PASSWORDS.some((c) => unleeted.includes(c)), viaLeet: true };
+}
+
+// Whole words, split on non-letters and camelCase: "Kedim.Pamuk" / "KedimPamuk" -> kedim, pamuk.
+function words(pw: string): string[] {
+  return (pw.match(/[A-ZÇĞİIÖŞÜ]?[a-zçğıöşü]+|[A-ZÇĞİIÖŞÜ]+(?![a-zçğıöşü])/g) ?? []).map(lower);
+}
+
+function findKnownWords(tokens: string[]): string[] {
+  const unique = Array.from(new Set(tokens));
+  return unique.filter((w) => COMMON_FIRST_NAMES.includes(w) || COMMON_WORDS.includes(w));
+}
+
+function findRepeatedWords(tokens: string[]): string[] {
+  return tokens.filter((w, i) => w.length >= 3 && tokens.indexOf(w) !== i);
 }
 
 function tierFromScore(score: number): { tier: StrengthTier; label: string } {
@@ -130,8 +155,11 @@ export function analyzePassword(password: string): PasswordAnalysis {
   const weaknesses: string[] = [];
   const suggestions: string[] = [];
 
-  const common = isCommonPassword(password);
-  const commonName = findCommonName(password);
+  const bitsPerChar = Math.log2(charsetSize);
+  const { common, viaLeet } = length > 0 ? isCommonPassword(password) : { common: false, viaLeet: false };
+  const tokens = words(password);
+  const knownWords = findKnownWords(tokens);
+  const repeatedWords = findRepeatedWords(tokens);
   const hasYear = YEAR_RE.test(password);
   const sequential = hasSequentialRun(password);
   const repeated = hasRepeatedChar(password) || hasRepeatingBlock(password);
@@ -148,21 +176,38 @@ export function analyzePassword(password: string): PasswordAnalysis {
 
   if (common) {
     entropy = Math.min(entropy, 10);
-    weaknesses.push("Bu şifre, saldırganların deneme listelerinde ilk sıralarda yer alan, dünyada en çok kullanılan şifrelerden biri.");
+    if (viaLeet) {
+      weaknesses.push(
+        "Harfleri @, 0, 1 veya ! ile değiştirmek işe yaramıyor: altında saldırı listelerinde bulunan yaygın bir kelime ya da şifre var.",
+      );
+    } else {
+      weaknesses.push("Bu şifre, saldırganların deneme listelerinde ilk sıralarda yer alan, çok yaygın bir şifre ya da kelime içeriyor.");
+    }
     suggestions.push("Bu şifreyi hemen değiştir; çok yaygın kullanılıyor ve ilk denenen şifreler arasında.");
   }
 
-  if (commonName) {
-    entropy *= 0.6;
-    weaknesses.push("İçinde yaygın bir isim var; isimler tahmin edilmesi en kolay bilgilerden biridir.");
-    suggestions.push("Adını, soyadını veya yakınlarının adını şifrene ekleme.");
+  // A known word is one guess from a list, not a string of random letters (~11 bits).
+  for (const word of knownWords) {
+    entropy -= Math.max(0, word.length * bitsPerChar - 11);
+  }
+  if (knownWords.length > 0) {
+    weaknesses.push(
+      "İçinde bir isim, evcil hayvan adı ya da site adı var; bu tür kişisel bilgiler tahmin edilmesi en kolay şeylerdir.",
+    );
+    suggestions.push("Adını, yakınlarının ya da evcil hayvanının adını şifrene ekleme.");
+  }
+
+  for (const word of repeatedWords) {
+    entropy -= word.length * bitsPerChar;
+  }
+  if (repeatedWords.length > 0) {
+    weaknesses.push("Aynı kelime birden fazla kez geçiyor; tekrar, uzunluğun sağladığı gücü yok eder.");
+    suggestions.push("Parola cümlende birbirinden farklı kelimeler kullan.");
   }
 
   if (hasYear) {
-    entropy *= commonName ? 0.9 : 0.85;
-    if (!commonName) {
-      weaknesses.push("İçinde bir yıl var; doğum yılları ve güncel yıllar kolayca denenir.");
-    }
+    entropy -= Math.max(0, 4 * bitsPerChar - 7);
+    weaknesses.push("İçinde bir yıl var; doğum yılları ve güncel yıllar kolayca denenir.");
     suggestions.push("Doğum yılın gibi tahmin edilebilir sayıları şifrene ekleme.");
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { analyzePassword } from "@/lib/passwordAnalysis";
+import { analyzePassword, type PasswordAnalysis } from "@/lib/passwordAnalysis";
 import { ShieldMascot } from "@/components/sifre/ShieldMascot";
 import { StrengthMeter } from "@/components/sifre/StrengthMeter";
 import { Icon } from "@/components/sifre/Icon";
@@ -13,26 +13,27 @@ const CHAR_TYPES: { key: "hasUpper" | "hasLower" | "hasDigit" | "hasSymbol"; lab
   { key: "hasSymbol", label: "Sembol" },
 ];
 
-export function PasswordLab() {
+export function PasswordLab({ onClaimBadge }: { onClaimBadge: (analysis: PasswordAnalysis) => void }) {
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
   const analysis = useMemo(() => analyzePassword(password), [password]);
   const idle = password.length === 0;
 
   return (
-    <section id="lab" className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
+    <section id="lab" className="relative mx-auto max-w-6xl px-4 pt-6 pb-16 sm:px-6 sm:py-20 lg:px-8">
       <div className="mx-auto max-w-2xl text-center">
         <p className="font-mono text-xs tracking-[0.25em] text-cyan uppercase">Şifre Laboratuvarı</p>
-        <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
-          Şifreni yaz, Siber Kalkan anında tepki versin
+        <h2 className="mt-2 font-display text-2xl font-semibold sm:mt-3 sm:text-4xl">
+          Şimdi şifreni test edelim, ne kadar güçlü?
         </h2>
-        <p className="mt-3 text-mist-dim">
-          Aşağıya örnek bir şifre yaz. Gerçek şifrelerini buraya girme — burası sadece deneme ve öğrenme alanı.
+        <p className="mt-2 text-sm text-mist-dim sm:mt-3 sm:text-base">
+          Öğrendiklerinle güçlü bir şifre oluştur, gücüne göre rozetini kazan!{" "}
+          <span className="text-mist">Gerçek şifreni yazma</span> — burası sadece deneme alanı.
         </p>
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="glass glow-ring rounded-3xl p-6 sm:p-8">
+      <div className="mt-6 grid gap-6 sm:mt-10 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="glass glow-ring rounded-3xl p-4 sm:p-8">
           <label htmlFor="pw-input" className="mb-2 block text-sm font-medium text-mist-dim">
             Örnek şifre
           </label>
@@ -44,7 +45,10 @@ export function PasswordLab() {
               spellCheck={false}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Buraya örnek bir şifre yaz..."
+              placeholder="Örnek bir şifre yaz..."
+              enterKeyHint="done"
+              autoCapitalize="none"
+              autoCorrect="off"
               className="w-full rounded-2xl border border-line bg-ink-raised px-5 py-4 pr-24 font-mono text-lg text-mist placeholder:text-mist-faint focus:border-cyan/60"
             />
             <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
@@ -72,15 +76,32 @@ export function PasswordLab() {
             Bu analiz tamamen cihazında çalışır; hiçbir şifre internete gönderilmez.
           </p>
 
+          {/* Phones: keep the reaction and badge button right under the input, above the keyboard. */}
+          <div className="mt-4 rounded-2xl border border-line bg-ink-raised/60 p-3 lg:hidden">
+            <div className="flex items-center gap-3">
+              <ShieldMascot score={analysis.score} tier={analysis.tier} idle={idle} className="h-16 w-16 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-lg font-semibold leading-tight">
+                  {idle ? "Hazır bekliyorum!" : analysis.tierLabel}
+                </p>
+                <p className="mb-2 text-xs text-mist-faint">
+                  {idle ? "Yazmaya başla" : `Güç puanı: ${analysis.score}/100 · ${analysis.crackTimeText}`}
+                </p>
+                <StrengthMeter score={idle ? 0 : analysis.score} label={idle ? "Boş" : analysis.tierLabel} />
+              </div>
+            </div>
+            <ClaimButton idle={idle} onClick={() => onClaimBadge(analysis)} className="mt-3" />
+          </div>
+
           {idle ? (
-            <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line py-12 text-center">
+            <div className="mt-6 hidden flex-col items-center gap-3 rounded-2xl border border-dashed border-line py-12 text-center sm:mt-8 sm:flex">
               <Icon name="sparkle" className="h-8 w-8 text-mist-faint" />
               <p className="max-w-sm text-sm text-mist-dim">
                 Bir şey yazmaya başladığında şifre gücü, karakter analizi ve kırılma süresi burada belirecek.
               </p>
             </div>
           ) : (
-            <div className="mt-8 animate-fade-up space-y-8">
+            <div className="mt-6 animate-fade-up space-y-6 sm:mt-8 sm:space-y-8">
               <div>
                 <h3 className="mb-3 text-sm font-semibold text-mist-dim">Karakter analizi</h3>
                 <div className="flex flex-wrap gap-2">
@@ -153,7 +174,7 @@ export function PasswordLab() {
           )}
         </div>
 
-        <div className="glass glow-ring flex flex-col items-center gap-5 rounded-3xl p-6 text-center lg:sticky lg:top-24 lg:self-start">
+        <div className="glass glow-ring hidden flex-col items-center gap-5 rounded-3xl p-6 text-center lg:sticky lg:top-24 lg:flex lg:self-start">
           <ShieldMascot score={analysis.score} tier={analysis.tier} idle={idle} className="h-36 w-36" />
           <div className="w-full">
             <p className="font-display text-xl font-semibold">
@@ -164,8 +185,22 @@ export function PasswordLab() {
             </p>
           </div>
           <StrengthMeter score={idle ? 0 : analysis.score} label={idle ? "Boş" : analysis.tierLabel} />
+          <ClaimButton idle={idle} onClick={() => onClaimBadge(analysis)} />
         </div>
       </div>
     </section>
+  );
+}
+
+function ClaimButton({ idle, onClick, className = "" }: { idle: boolean; onClick: () => void; className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={idle}
+      className={`w-full rounded-full bg-gradient-to-r from-cyan to-violet px-6 py-3.5 text-base font-semibold text-ink transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
+    >
+      Rozetimi Al
+    </button>
   );
 }

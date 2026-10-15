@@ -19,6 +19,61 @@
 
   --line: rgba(233, 238, 251, 0.1);
   --line-soft: rgba(233, 238, 251, 0.06);
+
+  --glass-from: rgba(21, 28, 64, 0.72);
+  --glass-to: rgba(17, 23, 51, 0.72);
+  --glow: 0 20px 60px -20px rgba(79, 140, 255, 0.35);
+  --tint-a: rgba(143, 113, 247, 0.16);
+  --tint-b: rgba(63, 232, 210, 0.12);
+  color-scheme: dark;
+}
+
+/* Daylight: cool paper, not an inverted night sky. Accents are darkened so they
+   still read as text on white; buttons that use text-ink flip to light-on-color. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --ink: #edf1fb;
+    --ink-raised: #ffffff;
+    --ink-card: #e2e8f7;
+    --mist: #121836;
+    --mist-dim: #44507a;
+    --mist-faint: #5e6a92;
+    --cyan: #0b8577;
+    --violet: #6a4ce0;
+    --blue: #2c62d6;
+    --coral: #cf3f37;
+    --amber: #a3620a;
+    --line: rgba(18, 24, 54, 0.12);
+    --line-soft: rgba(18, 24, 54, 0.06);
+    --glass-from: rgba(255, 255, 255, 0.88);
+    --glass-to: rgba(248, 250, 255, 0.88);
+    --glow: 0 18px 50px -24px rgba(44, 98, 214, 0.35);
+    --tint-a: rgba(106, 76, 224, 0.1);
+    --tint-b: rgba(11, 133, 119, 0.08);
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="light"] {
+  --ink: #edf1fb;
+  --ink-raised: #ffffff;
+  --ink-card: #e2e8f7;
+  --mist: #121836;
+  --mist-dim: #44507a;
+  --mist-faint: #5e6a92;
+  --cyan: #0b8577;
+  --violet: #6a4ce0;
+  --blue: #2c62d6;
+  --coral: #cf3f37;
+  --amber: #a3620a;
+  --line: rgba(18, 24, 54, 0.12);
+  --line-soft: rgba(18, 24, 54, 0.06);
+  --glass-from: rgba(255, 255, 255, 0.88);
+  --glass-to: rgba(248, 250, 255, 0.88);
+  --glow: 0 18px 50px -24px rgba(44, 98, 214, 0.35);
+  --tint-a: rgba(106, 76, 224, 0.1);
+  --tint-b: rgba(11, 133, 119, 0.08);
+  color-scheme: light;
 }
 
 @theme inline {
@@ -51,8 +106,8 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   background-image:
-    radial-gradient(60rem 36rem at 12% -10%, rgba(143, 113, 247, 0.16), transparent 60%),
-    radial-gradient(50rem 32rem at 100% 10%, rgba(63, 232, 210, 0.12), transparent 55%),
+    radial-gradient(60rem 36rem at 12% -10%, var(--tint-a), transparent 60%),
+    radial-gradient(50rem 32rem at 100% 10%, var(--tint-b), transparent 55%),
     linear-gradient(var(--line-soft) 1px, transparent 1px),
     linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
   background-size:
@@ -83,7 +138,7 @@ body {
 }
 
 .glass {
-  background: linear-gradient(180deg, rgba(21, 28, 64, 0.72), rgba(17, 23, 51, 0.72));
+  background: linear-gradient(180deg, var(--glass-from), var(--glass-to));
   border: 1px solid var(--line);
   backdrop-filter: blur(18px);
 }
@@ -96,7 +151,7 @@ body {
 }
 
 .glow-ring {
-  box-shadow: 0 0 0 1px var(--line), 0 20px 60px -20px rgba(79, 140, 255, 0.35);
+  box-shadow: 0 0 0 1px var(--line), var(--glow);
 }
 
 @keyframes fade-up {
@@ -186,13 +241,77 @@ body {
   animation: shake 0.45s ease-in-out;
 }
 
+/* Sparks fly out from the centre of whatever they sit in; --a is each spark's angle. */
+@keyframes burst {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--a)) translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(var(--d, -64px)) scale(0.3);
+  }
+}
+
+.animate-burst {
+  animation: burst 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-pop {
+  animation: pop 0.35s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+/* The badge reveal: the one big moment in the flow. */
+@keyframes badge-in {
+  0% {
+    transform: scale(0.4) rotate(-18deg);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.08) rotate(4deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+.animate-badge-in {
+  animation: badge-in 0.9s cubic-bezier(0.25, 1.2, 0.4, 1) both;
+}
+
+.animate-rise {
+  animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
   .animate-drift,
   .animate-pulse-glow,
   .animate-spark,
-  .animate-shake {
+  .animate-shake,
+  .animate-burst,
+  .animate-pop,
+  .animate-badge-in,
+  .animate-rise {
     animation: none !important;
+  }
+  .animate-burst {
+    display: none;
   }
   * {
     transition-duration: 0.01ms !important;

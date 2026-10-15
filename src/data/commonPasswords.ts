@@ -44,6 +44,16 @@ export const COMMON_PASSWORDS: string[] = [
   "zonguldak",
   "çılgın",
   "cilgin",
+  "1qaz2wsx",
+  "hayatim",
+  "hayatım",
+  "askim",
+  "aşkım",
+  "canim",
+  "canım",
+  "seniseviyorum",
+  "ataturk",
+  "atatürk",
 ];
 
 export const COMMON_FIRST_NAMES: string[] = [
@@ -75,4 +85,36 @@ export const COMMON_FIRST_NAMES: string[] = [
   "selin",
   "kerem",
   "berk",
+  "kemal",
+];
+
+// Personal or well-known words that attackers try early: pet names, "my cat",
+// site names. Matched as whole words, like first names.
+export const COMMON_WORDS: string[] = [
+  "kedim",
+  "kedi",
+  "kopek",
+  "köpek",
+  "kopegim",
+  "köpeğim",
+  "pamuk",
+  "boncuk",
+  "minnos",
+  "tarcin",
+  "tarçın",
+  "karabas",
+  "karabaş",
+  "fistik",
+  "fıstık",
+  "mavis",
+  "maviş",
+  "duman",
+  "instagram",
+  "facebook",
+  "twitter",
+  "google",
+  "gmail",
+  "tiktok",
+  "youtube",
+  "whatsapp",
 ];
