@@ -43,3 +43,28 @@ export function newResultId() {
     ? crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
+
+export interface ResultRow {
+  date: string;
+  firstName: string;
+  lastName: string;
+  correct: number;
+  total: number;
+  seconds: number;
+  badge: string;
+}
+
+export type FetchResults =
+  | { ok: true; rows: ResultRow[] }
+  | { ok: false; error: "not-configured" | "wrong-password" | "no-password-set" | "network" };
+
+// The password is checked by the Apps Script, not here.
+export async function fetchResults(password: string): Promise<FetchResults> {
+  if (!RESULTS_URL) return { ok: false, error: "not-configured" };
+  try {
+    const res = await fetch(`${RESULTS_URL}?key=${encodeURIComponent(password)}`);
+    return (await res.json()) as FetchResults;
+  } catch {
+    return { ok: false, error: "network" };
+  }
+}

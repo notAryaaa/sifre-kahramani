@@ -70,6 +70,39 @@ function doPost(e) {
   }
 }
 
+// The results page (/sonuclar) reads everything through here. The password lives in
+// Project Settings → Script properties as TEACHER_PASSWORD, so it is checked on
+// Google's side and never appears in the website's code.
+function doGet(e) {
+  const expected = PropertiesService.getScriptProperties().getProperty("TEACHER_PASSWORD");
+  const given = (e && e.parameter && e.parameter.key) || "";
+  if (!expected) return json({ ok: false, error: "no-password-set" });
+  if (given !== expected) {
+    Utilities.sleep(1500); // slow down password guessing
+    return json({ ok: false, error: "wrong-password" });
+  }
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(RESULTS_SHEET);
+  const lastRow = sheet.getLastRow();
+  const values = lastRow < 2 ? [] : sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+  const rows = values
+    .filter((r) => r[1] !== "")
+    .map((r) => ({
+      date: r[0] instanceof Date ? r[0].toISOString() : String(r[0]),
+      firstName: String(r[2]).replace(/^'/, ""),
+      lastName: String(r[3]).replace(/^'/, ""),
+      correct: Number(r[4]) || 0,
+      total: Number(r[5]) || 0,
+      seconds: Number(r[6]) || 0,
+      badge: String(r[7] || ""),
+    }));
+  return json({ ok: true, rows: rows });
+}
+
+function json(data) {
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}
+
 // Trim, cap length, and stop names like "=HYPERLINK(...)" from running as formulas.
 function clean(value, maxLength) {
   const text = String(value == null ? "" : value).trim().slice(0, maxLength);
